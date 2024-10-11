@@ -5,38 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link Opener Example</title>
 <script>
-function openLinkOrSwitchTab(url) {
-  // 尝试打开新标签页
-  var newWindow = window.open(url, '_blank');
+// 获取URL的一级域名
+function getTopLevelDomain(url) {
+  const parsedUrl = new URL(url);
+  const hostname = parsedUrl.hostname;
+  const parts = hostname.split('.');
+  if (parts.length > 2) {
+    return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+  }
+  console.log(hostname);
+  return hostname;
+}
 
-  // 检查新打开的窗口是否被浏览器拦截
-  if (newWindow) {
-    // 如果没有被拦截，聚焦到新打开的标签页
-    newWindow.focus();
-  } else {
-    // 如果被拦截，尝试查找已打开的同源标签页
-    var found = false;
-    for (var i = 0; i < window.length; i++) {
-      if (window[i].location.href === url && window[i] !== window.self) {
-        window[i].focus();
-        found = true;
-        break;
-      }
-    }
-    // 如果没有找到已打开的标签页，尝试在当前窗口打开链接
-    if (!found) {
-      window.location.href = url;
+// 检查是否已经打开了相同一级域名的标签页，并在该标签页加载新的链接
+function openLinkInExistingTab(url) {
+  const topLevelDomain = getTopLevelDomain(url);
+  const existingWindows = window.opener ? [window.opener] : window.top.frames;
+  let found = false;
+
+  for (let i = 0; i < existingWindows.length; i++) {
+    const existingWindow = existingWindows[i];
+    if (getTopLevelDomain(existingWindow.location.href) === topLevelDomain) {
+      existingWindow.focus(); // 聚焦到已打开的标签页
+      existingWindow.location.href = url; // 加载新的链接
+      found = true;
+      break;
     }
   }
+
+  if (!found) {
+    window.open(url, '_blank'); // 如果没有找到，打开新标签页
+  }
 }
+
+// 给链接添加点击事件
+document.addEventListener('DOMContentLoaded', function() {
+  const link = document.getElementById('myLink');
+  link.addEventListener('click', function(event) {
+    event.preventDefault(); // 阻止默认的链接跳转行为
+    openLinkInExistingTab(link.href);
+  });
+});
 </script>
 </head>
 <body>
 
 <h2>Link Opener Example</h2>
 
-<!-- 链接按钮，点击时调用openLinkOrSwitchTab函数 -->
-<button onclick="openLinkOrSwitchTab('http://example.com/some-page')">Open Link or Switch Tab</button>
+<!-- 链接元素 -->
+<a href="https://joex-design.github.io/github-pages-static/index-uikit" id="myLink" target="_blank">Open Link or Switch Tab</a>
 
 </body>
 </html>
