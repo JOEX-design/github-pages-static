@@ -21,10 +21,12 @@ function getTopLevelDomain(url) {
 // 检查是否已经打开了相同一级域名的标签页，并在该标签页加载新的链接
 function openLinkInExistingTab(url) {
   const topLevelDomain = getTopLevelDomain(url);
+  console.log(window.opener);
   const existingWindows = window.opener ? [window.opener] : window.top.frames;
   let found = false;
 
   for (let i = 0; i < existingWindows.length; i++) {
+    console.log(existingWindows);
     const existingWindow = existingWindows[i];
     if (getTopLevelDomain(existingWindow.location.href) === topLevelDomain) {
       existingWindow.focus(); // 聚焦到已打开的标签页
